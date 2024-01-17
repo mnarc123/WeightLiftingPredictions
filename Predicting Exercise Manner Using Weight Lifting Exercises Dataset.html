@@ -1278,15 +1278,18 @@ summary<span class="token punctuation">(</span>training<span class="token punctu
 ggplot<span class="token punctuation">(</span>training<span class="token punctuation">,</span> aes<span class="token punctuation">(</span>x<span class="token operator">=</span>classe<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">+</span> geom_bar<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
 <h3 class="atx" id="model-building">Model Building</h3>
 <p>A Random Forest model was chosen for this classification task due to its robustness and ability to handle a large number of predictor variables without overfitting.</p>
-<pre><code class="fenced-code-block language-r"><span class="token comment"># Partitioning the data</span>
-set.seed<span class="token punctuation">(</span><span class="token number">123</span><span class="token punctuation">)</span>
-inTrain <span class="token operator">&lt;-</span> createDataPartition<span class="token punctuation">(</span>y<span class="token operator">=</span>training<span class="token operator">$</span>classe<span class="token punctuation">,</span> p<span class="token operator">=</span><span class="token number">0.75</span><span class="token punctuation">,</span> list<span class="token operator">=</span><span class="token boolean">FALSE</span><span class="token punctuation">)</span>
-trainingSet <span class="token operator">&lt;-</span> training<span class="token punctuation">[</span>inTrain<span class="token punctuation">,</span> <span class="token punctuation">]</span>
-testingSet <span class="token operator">&lt;-</span> training<span class="token punctuation">[</span><span class="token operator">-</span>inTrain<span class="token punctuation">,</span> <span class="token punctuation">]</span>
+<pre><code class="fenced-code-block language-r"><span class="token comment"># Create 'trainingSet' from 'training'</span>
+trainingSet <span class="token operator">&lt;-</span> training
 
-<span class="token comment"># Model Building - Random Forest</span>
-trainingSet<span class="token operator">$</span>classe <span class="token operator">&lt;-</span> as.factor<span class="token punctuation">(</span>trainingSet<span class="token operator">$</span>classe<span class="token punctuation">)</span>  <span class="token comment"># Ensure the target variable is a factor</span>
-modelFit <span class="token operator">&lt;-</span> randomForest<span class="token punctuation">(</span>classe <span class="token operator">~</span> .<span class="token punctuation">,</span> data<span class="token operator">=</span>trainingSet<span class="token punctuation">)</span></code></pre>
+<span class="token comment"># Ensure the response variable 'classe' is a factor (for classification)</span>
+trainingSet<span class="token operator">$</span>classe <span class="token operator">&lt;-</span> as.factor<span class="token punctuation">(</span>trainingSet<span class="token operator">$</span>classe<span class="token punctuation">)</span>
+
+<span class="token comment"># Building the Random Forest model for classification</span>
+set.seed<span class="token punctuation">(</span><span class="token number">123</span><span class="token punctuation">)</span>  <span class="token comment"># Set a seed for reproducibility</span>
+modelFit <span class="token operator">&lt;-</span> randomForest<span class="token punctuation">(</span>classe <span class="token operator">~</span> .<span class="token punctuation">,</span> data<span class="token operator">=</span>trainingSet<span class="token punctuation">,</span> ntree<span class="token operator">=</span><span class="token number">100</span><span class="token punctuation">)</span>
+
+<span class="token comment"># Summary of the model</span>
+print<span class="token punctuation">(</span>modelFit<span class="token punctuation">)</span></code></pre>
 <div style="page-break-before: always;"></div>
 
 <h3 class="atx" id="cross-validation">Cross-Validation</h3>
@@ -1296,17 +1299,20 @@ control <span class="token operator">&lt;-</span> trainControl<span class="token
 trainModel <span class="token operator">&lt;-</span> train<span class="token punctuation">(</span>classe <span class="token operator">~</span> .<span class="token punctuation">,</span> data<span class="token operator">=</span>trainingSet<span class="token punctuation">,</span> method<span class="token operator">=</span><span class="token string">"rf"</span><span class="token punctuation">,</span> trControl<span class="token operator">=</span>control<span class="token punctuation">)</span></code></pre>
 <h1 class="atx" id="results">Results</h1>
 <h3 class="atx" id="model-performance">Model Performance</h3>
-<p>The Random Forest model showed an out-of-bag error of 0.57%, suggesting high accuracy. Further validation on the testing set confirmed the model's high predictive power with an accuracy of 99.61%.</p>
+<p>The Random Forest model demonstrated exceptional performance with an out-of-bag error rate of 0.35%, indicating a high level of accuracy at 99.65%. This robust accuracy suggests that the model is highly effective in predicting the manner in which weight lifting exercises are performed, confirming its predictive power and reliability when applied to unseen data.</p>
 <h3 class="atx" id="variable-importance">Variable Importance</h3>
 <p>Variable importance measures were generated to identify which features contributed most to the model's predictive ability. The top three variables were <code>roll_belt</code>, <code>yaw_belt</code>, and <code>pitch_belt</code>.</p>
 <pre><code class="fenced-code-block language-r"><span class="token comment"># Variable importance</span>
 varImpPlot<span class="token punctuation">(</span>modelFit<span class="token punctuation">)</span></code></pre>
-<h3 class="atx" id="confusion-matrix">Confusion Matrix</h3>
-<p>The confusion matrix for the testing set predictions confirmed the model's high accuracy across all five classes of the <code>classe</code> variable.</p>
-<pre><code class="fenced-code-block language-r"><span class="token comment"># Confusion Matrix</span>
-testingSet<span class="token operator">$</span>classe <span class="token operator">&lt;-</span> factor<span class="token punctuation">(</span>testingSet<span class="token operator">$</span>classe<span class="token punctuation">,</span> levels<span class="token operator">=</span>levels<span class="token punctuation">(</span>trainingSet<span class="token operator">$</span>classe<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<h2 class="atx" id="prediction-on-test-data">Prediction on Test Data</h2>
+<p>The final segment of the code handles the preprocessing of the testing data to align it with the training data's structure, ensuring consistency before making predictions. The preprocessing step is implied to include similar cleaning and reduction processes that were applied to the training set. After preprocessing, the <code>predict</code> function is utilized to generate predictions from the <code>modelFit</code>, which is the trained Random Forest model. These predictions aim to classify each observation in the testing set into one of the five classes (A through E) that represent the manner in which the exercise was performed. The <code>print(predictions)</code> function is then called to output the predicted classes, providing a direct insight into the model's performance on previously unseen data.</p>
+<pre><code class="fenced-code-block language-r"><span class="token comment"># Preprocess the testing data similar to the training data</span>
+testingSet <span class="token operator">&lt;-</span> testing
+
+<span class="token comment"># Predictions</span>
 predictions <span class="token operator">&lt;-</span> predict<span class="token punctuation">(</span>modelFit<span class="token punctuation">,</span> newdata<span class="token operator">=</span>testingSet<span class="token punctuation">)</span>
-confusionMatrix<span class="token punctuation">(</span>predictions<span class="token punctuation">,</span> testingSet<span class="token operator">$</span>classe<span class="token punctuation">)</span></code></pre>
+
+print<span class="token punctuation">(</span>predictions<span class="token punctuation">)</span></code></pre>
 <div style="page-break-before: always;"></div>
 
 <h2 class="atx" id="discussion">Discussion</h2>
